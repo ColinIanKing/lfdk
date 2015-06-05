@@ -108,7 +108,7 @@ int main( int argc, char **argv ) {
     extern int optind;
 
     char c, device[ LFDK_MAX_PATH ];
-    int i, fd, orig_fl;
+    int fd;
 
     struct tm *nowtime;
     time_t timer;

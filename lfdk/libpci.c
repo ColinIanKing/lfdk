@@ -127,7 +127,6 @@ void GetVendorAndDeviceTexts( int venid, int devid, char *ventxt, char *devtxt )
 
     int fd;
     int tabs;
-    int i;
     int done;
     int findven;
 
@@ -193,7 +192,6 @@ void GetVendorAndDeviceTexts( int venid, int devid, char *ventxt, char *devtxt )
 
 void ScanPCIDevice( int fd ) {
 
-    int i;
     unsigned char bus = 0, dev = 0, fun = 0;
 
 
