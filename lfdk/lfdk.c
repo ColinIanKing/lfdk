@@ -310,8 +310,6 @@ int main( int argc, char **argv ) {
 
 
     fprintf( stderr, "\n" );
-    usage();
-
 
     return 0;
 }
