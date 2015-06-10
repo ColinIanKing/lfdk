@@ -33,8 +33,6 @@
 #include "lfdd.h"
 
 
-static DEFINE_SPINLOCK( status_lock );
-
 static const unsigned long maxaddr = ~0UL;
 
 static void *__do_phys_to_virt(unsigned long phys) {
@@ -136,7 +134,6 @@ unsigned int lfdd_mem_read_dword( unsigned int addr ) {
 
 void lfdd_mem_write_byte( unsigned int value, unsigned int addr ) {
 
-    unsigned long flags;
     unsigned char *vaddr;
 
     // Check the range of physical address
@@ -149,9 +146,7 @@ void lfdd_mem_write_byte( unsigned int value, unsigned int addr ) {
     // Map physical memory address
     vaddr = __do_phys_to_virt(addr);
     if (vaddr) {
-        spin_lock_irqsave( &status_lock, flags );
         *vaddr = (unsigned char)value;
-        spin_unlock_irqrestore( &status_lock, flags );
         __undo_phys_to_virt(addr, vaddr);
     }
 }
@@ -159,7 +154,6 @@ void lfdd_mem_write_byte( unsigned int value, unsigned int addr ) {
 
 void lfdd_mem_write_word( unsigned int value, unsigned int addr ) {
 
-    unsigned long flags;
     unsigned short int *vaddr;
 
     // Check the range of physical address
@@ -172,9 +166,7 @@ void lfdd_mem_write_word( unsigned int value, unsigned int addr ) {
     // Map physical memory address
     vaddr = __do_phys_to_virt(addr);
     if (vaddr) {
-        spin_lock_irqsave( &status_lock, flags );
         *vaddr = value;
-        spin_unlock_irqrestore( &status_lock, flags );
         __undo_phys_to_virt(addr, vaddr);
     }
 }
@@ -182,7 +174,6 @@ void lfdd_mem_write_word( unsigned int value, unsigned int addr ) {
 
 void lfdd_mem_write_dword( unsigned int value, unsigned int addr ) {
 
-    unsigned long flags;
     unsigned int *vaddr;
 
     // Check the range of physical address
@@ -195,9 +186,7 @@ void lfdd_mem_write_dword( unsigned int value, unsigned int addr ) {
     // Map physical memory address
     vaddr = __do_phys_to_virt(addr);
     if (vaddr) {
-        spin_lock_irqsave( &status_lock, flags );
         *vaddr = value;
-        spin_unlock_irqrestore( &status_lock, flags );
         __undo_phys_to_virt(addr, vaddr);
     }
 }
