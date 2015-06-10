@@ -43,8 +43,8 @@ extern char wbuf;
 extern char enter_mem;
 
 
-unsigned int phyaddr = 0;
-
+unsigned long phyaddr = 0;
+static const unsigned long maxaddr = ~0UL;
 
 void WriteMemByteValue( fd ) {
 
@@ -85,19 +85,19 @@ void PrintMemScreen( int fd ) {
 
 
             phyaddr <<= 4;
-            phyaddr &= ~0x0f;
+            phyaddr &= ~0x0fUL;
 
             if( ibuf <= '9' ) {
 
-                phyaddr |= (unsigned int)(ibuf - 0x30);
+                phyaddr |= (unsigned long)(ibuf - 0x30);
             }
             else if( ibuf > 'F' ) {
 
-                phyaddr |= (unsigned int)(ibuf - 0x60 + 9);
+                phyaddr |= (unsigned long)(ibuf - 0x60 + 9);
             }
             else {
 
-                phyaddr |= (unsigned int)(ibuf - 0x40 + 9);
+                phyaddr |= (unsigned long)(ibuf - 0x40 + 9);
             }
         }
 
@@ -143,7 +143,7 @@ void PrintMemScreen( int fd ) {
         }
         else if( ibuf == KEY_NPAGE ) {
 
-            if( (0xffffffff - phyaddr) >= LFDD_MASSBUF_SIZE ) {
+            if( (maxaddr - phyaddr) >= LFDD_MASSBUF_SIZE ) {
         
                 phyaddr += LFDD_MASSBUF_SIZE;
             }
@@ -162,7 +162,7 @@ void PrintMemScreen( int fd ) {
             }
             else {
         
-                phyaddr = (0xffffffff - LFDD_MASSBUF_SIZE + 1);
+                phyaddr = (maxaddr - LFDD_MASSBUF_SIZE + 1);
             }
 
             input = 0;
@@ -236,14 +236,14 @@ void PrintMemScreen( int fd ) {
             wattrset( MemScreen.info, COLOR_PAIR( YELLOW_BLACK ) | A_BOLD );
         }
        
-        wprintw( MemScreen.info, "%8.8X", phyaddr );
+        wprintw( MemScreen.info, "%*.*lX", sizeof(phyaddr) * 2, sizeof(phyaddr) * 2, phyaddr );
 
         counter++;
     }
     else {
     
         wattrset( MemScreen.info, COLOR_PAIR( WHITE_BLUE ) | A_BOLD );
-        wprintw( MemScreen.info, "%8.8X", phyaddr );
+        wprintw( MemScreen.info, "%*.*lX", sizeof(phyaddr) * 2, sizeof(phyaddr) * 2, phyaddr );
     }
 
     

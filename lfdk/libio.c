@@ -43,8 +43,8 @@ extern char wbuf;
 extern char enter_mem;
 
 
-unsigned int ioaddr = 0;
-
+unsigned long ioaddr = 0;
+static unsigned long maxaddr = 0xffffUL;
 
 void WriteIOByteValue( fd ) {
 
@@ -85,7 +85,7 @@ void PrintIOScreen( int fd ) {
 
 
             ioaddr <<= 4;
-            ioaddr &= 0xffff;
+            ioaddr &= 0xffffUL;
 
             if( ibuf <= '9' ) {
 
@@ -143,7 +143,7 @@ void PrintIOScreen( int fd ) {
         }
         else if( ibuf == KEY_NPAGE ) {
 
-            if( (0xffffffff - ioaddr) >= LFDD_MASSBUF_SIZE ) {
+            if( (maxaddr - ioaddr) >= LFDD_MASSBUF_SIZE ) {
         
                 ioaddr += LFDD_MASSBUF_SIZE;
             }
@@ -162,7 +162,7 @@ void PrintIOScreen( int fd ) {
             }
             else {
         
-                ioaddr = (0xffffffff - LFDD_MASSBUF_SIZE + 1);
+                ioaddr = (maxaddr - LFDD_MASSBUF_SIZE + 1);
             }
 
             input = 0;
