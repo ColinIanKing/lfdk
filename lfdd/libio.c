@@ -33,49 +33,26 @@
 #include "lfdd.h"
 
 
-static DEFINE_SPINLOCK( status_lock );
-
-
 unsigned char lfdd_io_read_byte( unsigned long addr ) {
 
-    unsigned long flags;
-    char value;
-
-    spin_lock_irqsave( &status_lock, flags );
-
-    value = inb( addr );
-
-    spin_unlock_irqrestore( &status_lock, flags );
-
-    return value;
+    return inb( addr );
 }
 
 
 void lfdd_io_write_byte( unsigned int value, unsigned long addr ) {
 
-    unsigned long flags;
-
-    spin_lock_irqsave( &status_lock, flags );
-
     outb( value, addr );
-
-    spin_unlock_irqrestore( &status_lock, flags );
 }
 
 
 void lfdd_io_read_256byte( struct lfdd_io_t *pio ) { 
 
     int i;
-    unsigned long flags;
-
-    spin_lock_irqsave( &status_lock, flags );
 
     for( i = 0 ; i < LFDD_MASSBUF_SIZE ; i++ ) {
     
         pio->mass_buf[ i ] = inb( pio->addr + i );
     }
-
-    spin_unlock_irqrestore( &status_lock, flags );
 }
 
 
