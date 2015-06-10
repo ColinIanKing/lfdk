@@ -93,7 +93,7 @@ static int lfdd_release( struct inode *inode, struct file *file ) {
 }
 
 
-static int lfdd_ioctl( struct inode *inode, struct file *file
+static long lfdd_unlocked_ioctl( struct file *file
                             , unsigned int cmd, unsigned long arg ) {
 
     struct lfdd_pci_t lfdd_pci_data;
@@ -201,10 +201,10 @@ static int lfdd_ioctl( struct inode *inode, struct file *file
 
 static struct file_operations lfdd_fops = {
 
-    .owner      =   THIS_MODULE,
-    .ioctl      =   lfdd_ioctl,
-    .open       =   lfdd_open,
-    .release    =   lfdd_release,
+    .owner          = THIS_MODULE,
+    .unlocked_ioctl = lfdd_unlocked_ioctl,
+    .open           = lfdd_open,
+    .release        = lfdd_release,
 };
 
 
