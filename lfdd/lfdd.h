@@ -65,25 +65,25 @@ struct lfdd_pci_t {
     unsigned char   fun;
     unsigned char   reg;
 
-    unsigned int    buf;
+    unsigned long   buf;
     char            mass_buf[ LFDD_MASSBUF_SIZE ];
 };
 
 
 struct lfdd_mem_t {
 
-    unsigned int    addr;
+    unsigned long   addr;
 
-    unsigned int    buf;
+    unsigned long   buf;
     char            mass_buf[ LFDD_MASSBUF_SIZE ];
 };
 
 
 struct lfdd_io_t {
 
-    unsigned int    addr;
+    unsigned long   addr;
 
-    unsigned int    buf;
+    unsigned long   buf;
     char            mass_buf[ LFDD_MASSBUF_SIZE ];
 };
 
@@ -96,16 +96,16 @@ struct lfdd_io_t {
 
 
 #ifdef __KERNEL__
-unsigned char lfdd_io_read_byte( unsigned int addr );
-void lfdd_io_write_byte( unsigned int value, unsigned int addr );
+unsigned char lfdd_io_read_byte( unsigned long addr );
+void lfdd_io_write_byte( unsigned int value, unsigned long addr );
 void lfdd_io_read_256byte( struct lfdd_io_t *pio );
 
-unsigned char lfdd_mem_read_byte( unsigned int addr );
-unsigned short int lfdd_mem_read_word( unsigned int addr );
-unsigned int lfdd_mem_read_dword( unsigned int addr );
-void lfdd_mem_write_byte( unsigned int value, unsigned int addr );
-void lfdd_mem_write_word( unsigned int value, unsigned int addr );
-void lfdd_mem_write_dword( unsigned int value, unsigned int addr );
+unsigned char lfdd_mem_read_byte( unsigned long addr );
+unsigned short int lfdd_mem_read_word( unsigned long addr );
+unsigned int lfdd_mem_read_dword( unsigned long addr );
+void lfdd_mem_write_byte( unsigned int value, unsigned long addr );
+void lfdd_mem_write_word( unsigned int value, unsigned long addr );
+void lfdd_mem_write_dword( unsigned int value, unsigned long addr );
 void lfdd_mem_read_256byte( struct lfdd_mem_t *pmem );
 
 unsigned int lfdd_cal_pci_addr( unsigned char bus, unsigned char dev, unsigned char fun, unsigned char reg );

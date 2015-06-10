@@ -36,7 +36,7 @@
 static DEFINE_SPINLOCK( status_lock );
 
 
-unsigned char lfdd_io_read_byte( unsigned int addr ) {
+unsigned char lfdd_io_read_byte( unsigned long addr ) {
 
     unsigned long flags;
     char value;
@@ -51,7 +51,7 @@ unsigned char lfdd_io_read_byte( unsigned int addr ) {
 }
 
 
-void lfdd_io_write_byte( unsigned int value, unsigned int addr ) {
+void lfdd_io_write_byte( unsigned int value, unsigned long addr ) {
 
     unsigned long flags;
 

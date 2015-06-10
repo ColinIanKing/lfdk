@@ -69,7 +69,7 @@ static void __undo_phys_to_virt(unsigned long phys, void *addr)
 }
 
 
-unsigned char lfdd_mem_read_byte( unsigned int addr ) {
+unsigned char lfdd_mem_read_byte( unsigned long addr ) {
 
     unsigned char *vaddr;
     unsigned char value;
@@ -90,7 +90,7 @@ unsigned char lfdd_mem_read_byte( unsigned int addr ) {
 }
 
 
-unsigned short int lfdd_mem_read_word( unsigned int addr ) {
+unsigned short int lfdd_mem_read_word( unsigned long addr ) {
 
     unsigned short int *vaddr;
     unsigned short int value;
@@ -111,7 +111,7 @@ unsigned short int lfdd_mem_read_word( unsigned int addr ) {
 }
 
 
-unsigned int lfdd_mem_read_dword( unsigned int addr ) {
+unsigned int lfdd_mem_read_dword( unsigned long addr ) {
 
     unsigned int *vaddr;
     unsigned int value;
@@ -132,7 +132,7 @@ unsigned int lfdd_mem_read_dword( unsigned int addr ) {
 }
 
 
-void lfdd_mem_write_byte( unsigned int value, unsigned int addr ) {
+void lfdd_mem_write_byte( unsigned int value, unsigned long addr ) {
 
     unsigned char *vaddr;
 
@@ -152,7 +152,7 @@ void lfdd_mem_write_byte( unsigned int value, unsigned int addr ) {
 }
 
 
-void lfdd_mem_write_word( unsigned int value, unsigned int addr ) {
+void lfdd_mem_write_word( unsigned int value, unsigned long addr ) {
 
     unsigned short int *vaddr;
 
@@ -172,7 +172,7 @@ void lfdd_mem_write_word( unsigned int value, unsigned int addr ) {
 }
 
 
-void lfdd_mem_write_dword( unsigned int value, unsigned int addr ) {
+void lfdd_mem_write_dword( unsigned int value, unsigned long addr ) {
 
     unsigned int *vaddr;
 
