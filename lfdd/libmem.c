@@ -35,65 +35,100 @@
 
 static DEFINE_SPINLOCK( status_lock );
 
+static const unsigned long maxaddr = ~0UL;
+
+static void *__do_phys_to_virt(unsigned long phys) {
+	void *addr = NULL;
+	unsigned long start = phys & PAGE_MASK;
+	unsigned long pfn = PFN_DOWN(phys);
+
+	if (page_is_ram(start >> PAGE_SHIFT)) {
+		struct page *pg = pfn_to_page(pfn);
+		if (PageHighMem(pg)) {
+			return kmap(pg);
+		}
+		return __va(phys);
+	}
+	addr = (void __force *)ioremap_nocache(start, PAGE_SIZE);
+	if (addr)
+		return (void *)((unsigned long)addr | (phys & ~PAGE_MASK));
+
+	return NULL;
+}
+
+static void __undo_phys_to_virt(unsigned long phys, void *addr)
+{
+	unsigned long start = phys & PAGE_MASK;
+	unsigned long pfn = PFN_DOWN(phys);
+
+	if (page_is_ram(start >> PAGE_SHIFT)) {
+		struct page *pg = pfn_to_page(pfn);
+		if (PageHighMem(pg));
+			kunmap(pfn_to_page(pfn));
+		return;
+	}
+	iounmap((void __iomem *)((unsigned long)addr & PAGE_MASK));
+}
+
 
 unsigned char lfdd_mem_read_byte( unsigned int addr ) {
 
-    unsigned char __iomem *phymem;
-    unsigned int value;
+    unsigned char *vaddr;
+    unsigned char value;
 
     // Check the range of physical address
-    if( ((0xffffffff - addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - addr) <= LFDD_MASSBUF_SIZE)
         || ((addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
         return 0xff;
     }
 
     // Map physical memory address
-    phymem = phys_to_virt( addr );
-    value = *phymem;
-    phymem = NULL;
+    vaddr = __do_phys_to_virt(addr);
+    value = (vaddr) ? *vaddr : 0xff;
+    __undo_phys_to_virt(addr, vaddr);
 
-    return (value & 0xff);
+    return value;
 }
 
 
 unsigned short int lfdd_mem_read_word( unsigned int addr ) {
 
-    unsigned short int __iomem *phymem;
-    unsigned int value;
+    unsigned short int *vaddr;
+    unsigned short int value;
 
     // Check the range of physical address
-    if( ((0xffffffff - addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - addr) <= LFDD_MASSBUF_SIZE)
         || ((addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
-        return 0xff;
+        return 0xffff;
     }
 
     // Map physical memory address
-    phymem = phys_to_virt( addr );
-    value = *phymem;
-    phymem = NULL;
+    vaddr = __do_phys_to_virt(addr);
+    value = (vaddr) ? *vaddr : 0xffff;
+    __undo_phys_to_virt(addr, vaddr);
 
-    return (value & 0xffff);
+    return value;
 }
 
 
 unsigned int lfdd_mem_read_dword( unsigned int addr ) {
 
-    unsigned int __iomem *phymem;
+    unsigned int *vaddr;
     unsigned int value;
 
     // Check the range of physical address
-    if( ((0xffffffff - addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - addr) <= LFDD_MASSBUF_SIZE)
         || ((addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
-        return 0xff;
+        return 0xffffffff;
     }
 
     // Map physical memory address
-    phymem = phys_to_virt( addr );
-    value = *phymem;
-    phymem = NULL;
+    vaddr = __do_phys_to_virt(addr);
+    value = (vaddr) ? *vaddr : 0xffffffff;
+    __undo_phys_to_virt(addr, vaddr);
 
     return value;
 }
@@ -102,119 +137,92 @@ unsigned int lfdd_mem_read_dword( unsigned int addr ) {
 void lfdd_mem_write_byte( unsigned int value, unsigned int addr ) {
 
     unsigned long flags;
-    unsigned char __iomem *phymem;
-    unsigned int temp;
+    unsigned char *vaddr;
 
     // Check the range of physical address
-    if( ((0xffffffff - addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - addr) <= LFDD_MASSBUF_SIZE)
         || ((addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
         return;
     }
 
     // Map physical memory address
-    phymem = phys_to_virt( addr );
-
-    spin_lock_irqsave( &status_lock, flags );
-    temp = *phymem;
-    temp &= ~0xff;
-    temp |= (unsigned char)(value & 0xff);
-    *phymem = (unsigned int)temp;
-    spin_unlock_irqrestore( &status_lock, flags );
-
-    phymem = NULL;
+    vaddr = __do_phys_to_virt(addr);
+    if (vaddr) {
+        spin_lock_irqsave( &status_lock, flags );
+        *vaddr = (unsigned char)value;
+        spin_unlock_irqrestore( &status_lock, flags );
+        __undo_phys_to_virt(addr, vaddr);
+    }
 }
 
 
 void lfdd_mem_write_word( unsigned int value, unsigned int addr ) {
 
     unsigned long flags;
-    unsigned short int __iomem *phymem;
-    unsigned int temp;
+    unsigned short int *vaddr;
 
     // Check the range of physical address
-    if( ((0xffffffff - addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - addr) <= LFDD_MASSBUF_SIZE)
         || ((addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
         return;
     }
 
     // Map physical memory address
-    phymem = phys_to_virt( addr );
-
-    spin_lock_irqsave( &status_lock, flags );
-    temp = *phymem;
-    temp &= ~0xffff;
-    temp |= (unsigned char)(value & 0xffff);
-    *phymem = temp;
-    spin_unlock_irqrestore( &status_lock, flags );
-
-    phymem = NULL;
+    vaddr = __do_phys_to_virt(addr);
+    if (vaddr) {
+        spin_lock_irqsave( &status_lock, flags );
+        *vaddr = value;
+        spin_unlock_irqrestore( &status_lock, flags );
+        __undo_phys_to_virt(addr, vaddr);
+    }
 }
 
 
 void lfdd_mem_write_dword( unsigned int value, unsigned int addr ) {
 
     unsigned long flags;
-    unsigned int __iomem *phymem;
+    unsigned int *vaddr;
 
     // Check the range of physical address
-    if( ((0xffffffff - addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - addr) <= LFDD_MASSBUF_SIZE)
         || ((addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
         return;
     }
 
     // Map physical memory address
-    phymem = phys_to_virt( addr );
-
-    spin_lock_irqsave( &status_lock, flags );
-    *phymem = value;
-    spin_unlock_irqrestore( &status_lock, flags );
-
-    phymem = NULL;
+    vaddr = __do_phys_to_virt(addr);
+    if (vaddr) {
+        spin_lock_irqsave( &status_lock, flags );
+        *vaddr = value;
+        spin_unlock_irqrestore( &status_lock, flags );
+        __undo_phys_to_virt(addr, vaddr);
+    }
 }
 
 
-void lfdd_mem_read_256byte( struct lfdd_mem_t *pmem ) { 
+void lfdd_mem_read_256byte( struct lfdd_mem_t *pmem ) {
 
-    unsigned char __iomem *phymem;
-    void __iomem *virtmem, *p;
+    unsigned char *vaddr;
     int i;
 
     // Check the range of physical address
-    if( ((0xffffffff - pmem->addr) <= LFDD_MASSBUF_SIZE) 
+    if( ((maxaddr - pmem->addr) <= LFDD_MASSBUF_SIZE)
         || ((pmem->addr + LFDD_MASSBUF_SIZE) >= virt_to_phys( high_memory )) ) {
 
-        virtmem = ioremap( pmem->addr, LFDD_MASSBUF_SIZE );
+        memset( pmem->mass_buf, 0xff, LFDD_MASSBUF_SIZE );
+    } else {
 
-        if( virtmem ) {
-
-            p = virtmem;
-            for( i = 0 ; i < LFDD_MASSBUF_SIZE ; i++, p++ ) {
-
-                pmem->mass_buf[ i ] = readb( p );
-            }
-            iounmap( virtmem );
-        }
-        else {
-
-            memset( pmem->mass_buf, 0xff, LFDD_MASSBUF_SIZE );
-        }
-    }
-    else {
-    
         // Map physical memory address
-        phymem = phys_to_virt( pmem->addr );
-
-        // Read LFDD_MASSBUF_SIZE bytes
-        for( i = 0 ; i < LFDD_MASSBUF_SIZE ; i++ ) {
-
-            pmem->mass_buf[ i ] = *(phymem + i);
+        vaddr = __do_phys_to_virt(pmem->addr);
+        if (vaddr) {
+            // Read LFDD_MASSBUF_SIZE bytes
+            for( i = 0 ; i < LFDD_MASSBUF_SIZE ; i++ ) {
+                pmem->mass_buf[ i ] = *(vaddr + i);
+            }
+            __undo_phys_to_virt(pmem->addr, vaddr);
         }
-
-        phymem = NULL;
     }
 }
-
-
